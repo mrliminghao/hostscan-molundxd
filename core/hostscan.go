@@ -3,7 +3,6 @@ package core
 import (
 	"bufio"
 	"fmt"
-	"github.com/schollz/progressbar/v3"
 	"hostscan/elog"
 	"hostscan/utils"
 	"hostscan/vars"
@@ -11,53 +10,54 @@ import (
 	"os"
 	"strings"
 	"sync"
+
+	"github.com/schollz/progressbar/v3"
 )
 
-
-func calcTaskTotal(taskType string) int{
+func calcTaskTotal(taskType string) int {
 	var err error
 	var ipCnt, hostCnt, schemeCnt int
 	schemeCnt = len(vars.Schemes)
 	if taskType == "ip_host" {
 		ipCnt = 1
 		hostCnt = 1
-	}else if taskType == "ipfile_host" {
+	} else if taskType == "ipfile_host" {
 		ipCnt, err = utils.LineCounter(*vars.IpFile)
-		if err != nil{
+		if err != nil {
 			elog.Error(fmt.Sprintf("Get Lines Count[%s]: %v", *vars.IpFile, err))
 			return 0
 		}
 		hostCnt = 1
-	}else if taskType == "ip_hostfile" {
+	} else if taskType == "ip_hostfile" {
 		ipCnt = 1
 		hostCnt, err = utils.LineCounter(*vars.HostFile)
-		if err != nil{
+		if err != nil {
 			elog.Error(fmt.Sprintf("Get Lines Count[%s]: %v", *vars.HostFile, err))
 			return 0
 		}
-	}else if taskType == "ipfile_hostfile" {
+	} else if taskType == "ipfile_hostfile" {
 		ipCnt, err = utils.LineCounter(*vars.IpFile)
-		if err != nil{
+		if err != nil {
 			elog.Error(fmt.Sprintf("Get Lines Count[%s]: %v", *vars.IpFile, err))
 			return 0
 		}
 		hostCnt, err = utils.LineCounter(*vars.HostFile)
-		if err != nil{
+		if err != nil {
 			elog.Error(fmt.Sprintf("Get Lines Count[%s]: %v", *vars.HostFile, err))
 			return 0
 		}
-	}else{
+	} else {
 		return 0
 	}
 
 	return ipCnt * hostCnt * schemeCnt
 }
 
-func Scan(taskType string) error{
+func Scan(taskType string) error {
 	wg := sync.WaitGroup{}
 	totalTask := calcTaskTotal(taskType)
 
-	if totalTask == 0{
+	if totalTask == 0 {
 		elog.Error(fmt.Sprintf("Get Lines Count: 0"))
 		return nil
 	}
@@ -94,7 +94,7 @@ func Scan(taskType string) error{
 			// 生产者，不断地往taskChan channel发送数据，直到channel阻塞
 			taskChan <- task
 		}
-	}else if taskType == "ipfile_host" {
+	} else if taskType == "ipfile_host" {
 		ip_f, err := os.Open(*vars.IpFile)
 		defer ip_f.Close()
 		if err != nil {
@@ -121,7 +121,7 @@ func Scan(taskType string) error{
 				taskChan <- task
 			}
 		}
-	}else if taskType == "ip_hostfile" {
+	} else if taskType == "ip_hostfile" {
 		host_f, err := os.Open(*vars.HostFile)
 		defer host_f.Close()
 		if err != nil {
@@ -147,7 +147,7 @@ func Scan(taskType string) error{
 				taskChan <- task
 			}
 		}
-	}else if taskType == "ipfile_hostfile" {
+	} else if taskType == "ipfile_hostfile" {
 		ip_f, err := os.Open(*vars.IpFile)
 		defer ip_f.Close()
 		if err != nil {

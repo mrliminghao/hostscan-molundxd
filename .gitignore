@@ -1,4 +1,3 @@
-main
-result.txt
-test/
-.idea/
+.github/
+hostscan
+*.txt
